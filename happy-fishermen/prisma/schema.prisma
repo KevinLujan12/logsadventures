@@ -1,8 +1,42 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String        @id @default(cuid())
+  username     String        @unique
+  passwordHash String
+  email        String?       @unique
+  role         String?       @default("ADMIN")
+  logs         ActivityLog[]
+}
+
 model Fisherman {
-  id            String @id @default(cuid())
+  id            String  @id @default(cuid())
   name          String
-  rank          Int
+  rank          Int?
+  justification String?
   bestCatches   String
   commonCatches String
-  votes         Int    @default(0) // Agrega esta línea exacta
+  votes         Int     @default(0)
+}
+
+model ActivityLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  action    String
+  details   String?
+  createdAt DateTime @default(now())
+  user      User?    @relation(fields: [userId], references: [id])
+}
+
+model Subscriber {
+  id    String @id @default(cuid())
+  name  String
+  email String @unique
 }

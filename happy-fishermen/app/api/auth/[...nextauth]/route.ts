@@ -1,45 +1,40 @@
 import NextAuth from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials"
-import { PrismaClient } from '@prisma/client'
-import bcrypt from 'bcryptjs'
+import { PrismaClient } from "@prisma/client"
+import bcrypt from "bcrypt"
 
 const prisma = new PrismaClient()
 
 const handler = NextAuth({
   providers: [
     CredentialsProvider({
-      name: 'Credentials',
+      name: "Credentials",
       credentials: {
-        email: { label: "Email", type: "email" },
+        username: { label: "Username", type: "text", placeholder: "admin" },
         password: { label: "Password", type: "password" }
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) return null;
-        const user = await prisma.user.findUnique({ where: { email: credentials.email } });
-        if (!user) return null;
+        if (!credentials?.username || !credentials?.password) {
+          return null
+        }
         
-        const isPasswordValid = await bcrypt.compare(credentials.password, user.password);
-        if (!isPasswordValid) return null;
+        // Buscamos al usuario en la base de datos
+        const user = await prisma.user.findUnique({
+          where: { username: credentials.username }
+        })
         
-        // Log the login action (opcionalmente se puede hacer en un event de NextAuth)
-        await prisma.activityLog.create({
-          data: { userId: user.id, action: "LOGIN", details: "User logged in" }
-        });
-
-        return { id: user.id, email: user.email, role: user.role };
+        // Verificamos la contraseña
+        if (user && await bcrypt.compare(credentials.password, user.passwordHash)) {
+          // Retornamos solo ID y nombre para evitar errores de TypeScript
+          return { id: user.id, name: user.username }
+        }
+        
+        return null
       }
     })
   ],
-  callbacks: {
-    async session({ session, token }) {
-      if (session?.user) {
-        (session.user as any).id = token.sub as string;
-
-        // Asignar rol a la sesión si es necesario buscando en BD o guardándolo en el token
-      }
-      return session;
-    }
-  }
+  session: { strategy: "jwt" },
+  secret: process.env.NEXTAUTH_SECRET,
 })
 
 export { handler as GET, handler as POST }
