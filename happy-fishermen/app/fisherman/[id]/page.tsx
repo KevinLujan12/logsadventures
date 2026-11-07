@@ -1,6 +1,7 @@
 import { PrismaClient } from '@prisma/client'
-import { logAction } from '@/actions/logger'
-import PdfButton from '@/components/PdfButton'
+import { logAction } from '../../../actions/logger'
+import PdfButton from '../../../components/PdfButton'
+
 
 const prisma = new PrismaClient()
 
