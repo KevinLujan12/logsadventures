@@ -1,5 +1,5 @@
 'use client'
-import { logAction } from '@/actions/logger'
+import { logAction } from '../actions/logger'
 
 export default function PdfButton({ elementId, fishermanName }: { elementId: string, fishermanName: string }) {
   const handleDownload = async () => {
