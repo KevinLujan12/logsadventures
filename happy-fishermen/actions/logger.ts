@@ -10,7 +10,8 @@ export async function logAction(action: string, details: string) {
     
     await prisma.activityLog.create({
       data: {
-        userId: session?.user?.id || null, // Requiere que el ID esté en la sesión
+        userId: (session?.user as any)?.id || null,
+ // Requiere que el ID esté en la sesión
         action: action,
         details: details,
       }
